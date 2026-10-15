@@ -32,8 +32,11 @@ ever sent to odoo.com itself.
 2. Store the token in your OS keychain. Each command prompts for the
    token, so it never lands in your shell history or a dotfile:
 
-   - **macOS**: `security add-generic-password -a "$USER" -s odoo-api-token -w`
-     (paste the token when asked for the password, twice).
+   - **macOS**: `security add-generic-password -a "$USER" -s odoo-api-token -T "" -w`
+     (paste the token when asked for the password, twice). `-T ""` trusts
+     no app, so macOS asks for your approval every time the token is read,
+     i.e. on every search. Click **Allow**, not **Always Allow**, or the
+     prompt stops appearing and any program running as you can read it.
    - **Linux** (GNOME Keyring / KWallet via libsecret):
      `secret-tool store --label="Odoo API token" service odoo-api-token`
 
