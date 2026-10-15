@@ -16,26 +16,36 @@ description), not literal keyword overlap, and returns them ranked by
 relevance. Nothing is ever invented: Claude can only point back at tasks
 that were actually in the fetched list.
 
-A shell script (`fetch_tasks.sh`) does the authenticated fetch, reading your
-Odoo token from your own shell environment. Claude only ever runs the
-script and reads its plain output, so the token never appears in a prompt,
-a tool call, or anywhere in the conversation. It's used by `curl`, inside
-the script, and nowhere else, and is only ever sent to odoo.com itself.
+A shell script (`fetch_tasks.sh`) does the authenticated fetch. It reads
+your Odoo token from the OS keychain (macOS Keychain, or libsecret on
+Linux) at the moment it runs, hands it to `curl` through stdin, and drops
+it. The token is never stored in plaintext, never exported as an
+environment variable (so neither Claude Code nor any other program you run
+inherits it), and never appears on a command line visible in `ps`. Claude
+only ever runs the script and reads its plain output, and the token is only
+ever sent to odoo.com itself.
 
 ## One-time setup
 
 1. Get an Odoo API token: odoo.com, your profile, My Account, Account
    Security, generate an API key.
-2. Add these two lines to your shell profile (`~/.zshrc` on macOS,
-   `~/.bashrc` on most Linux), filling in your own values:
+2. Store the token in your OS keychain. Each command prompts for the
+   token, so it never lands in your shell history or a dotfile:
+
+   - **macOS**: `security add-generic-password -a "$USER" -s odoo-api-token -w`
+     (paste the token when asked for the password, twice).
+   - **Linux** (GNOME Keyring / KWallet via libsecret):
+     `secret-tool store --label="Odoo API token" service odoo-api-token`
+
+3. Add your project ID to your shell profile (`~/.zshrc` on macOS,
+   `~/.bashrc` on most Linux). It's not a secret:
 
    ```bash
-   export ODOO_API_TOKEN="paste-your-token-here"
    export ODOO_PROJECT_ID="1234"   # the number in your project's URL
    ```
 
    Open a new terminal (or run `source ~/.zshrc`) afterwards.
-3. Clone this repo into `~/.claude/skills/odoo-task-search/`, so it's
+4. Clone this repo into `~/.claude/skills/odoo-task-search/`, so it's
    `~/.claude/skills/odoo-task-search/skill.md` and
    `~/.claude/skills/odoo-task-search/fetch_tasks.sh`. This makes it
    available in every Claude Code session, not just one project.
@@ -48,8 +58,16 @@ In any Claude Code session, just ask in plain language:
 
 Say "include closed tasks" to widen the search to done/canceled tasks too.
 
+## Rotating or removing the token
+
+- **macOS**: `security delete-generic-password -s odoo-api-token`
+- **Linux**: `secret-tool clear service odoo-api-token`
+
+Then repeat step 2 with the new token.
+
 ## Requirements
 
 - The [Claude Code](https://claude.com/claude-code) CLI, installed and
   logged in.
-- `curl`.
+- `curl` 7.55 or newer.
+- macOS, or Linux with `secret-tool` (libsecret).

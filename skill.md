@@ -11,9 +11,10 @@ asking them for anything:
 
 1. Run `~/.claude/skills/odoo-task-search/fetch_tasks.sh` (add
    `--include-closed` only if they explicitly ask to include closed/done
-   tasks too). The script reads the user's Odoo token and project ID from
-   their own shell environment. Never ask for, read, store, or repeat this
-   token yourself, and never construct the HTTP request yourself.
+   tasks too). The script reads the user's Odoo token from the OS keychain
+   and the project ID from their environment. Never ask for, read, store, or
+   repeat this token yourself (including via `security` or `secret-tool`),
+   and never construct the HTTP request yourself.
 2. The script prints a JSON array of tasks (`id`, `name`, `description`,
    `stage_id`). Descriptions may contain HTML tags, ignore the markup and
    read the text underneath.
@@ -24,6 +25,6 @@ asking them for anything:
    matches, say so plainly.
 5. Never invent a task that wasn't in the script's output.
 
-If the script fails because the environment variables aren't set, tell the
-user to follow the one-time setup in this skill's README. Don't try to set
-the token for them.
+If the script fails because the token isn't in the keychain or
+ODOO_PROJECT_ID isn't set, tell the user to follow the one-time setup in
+this skill's README. Don't try to set the token for them.
